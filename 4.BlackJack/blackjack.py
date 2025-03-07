@@ -25,14 +25,14 @@ def print_card(cards):
                 case 12:
                     rank = 'K'
                 case _:
-                    rank = card%13
+                    rank = card%13+1
             print(f"|{rank}  | ",end="")
     print("")
     # middle symbol line
     for card in cards:
         symbol='\0'
         if card == 52:
-            print("|###| ")
+            print("|###| ",end="")
         else:
             match card//13:
                 case 0:
@@ -50,9 +50,9 @@ def print_card(cards):
     # bottom line and rank
     for card in cards:
         if card%13==9:
-            print("|_10| ")
+            print("|_10| ",end="")
         elif card == 52:
-            print("|_##| ")
+            print("|_##| ",end="")
         else:
             rank='\0'
             match card%13:
@@ -65,8 +65,9 @@ def print_card(cards):
                 case 12:
                     rank = 'K'
                 case _:
-                    rank = card%13
+                    rank = card%13+1
             print(f"|__{rank}| ",end="")
+    print("")
 
 # returns a valid card
 def get_card():
@@ -75,30 +76,60 @@ def get_card():
 
 # returns the card in words
 def card_in_words(card):
-    str = ""
+    words = ""
     match card%13:
         case 0:
-            str+='A'
+            words+='A'
         case 12:
-            str+='K'
+            words+='K'
         case 11:
-            str+='Q'
+            words+='Q'
         case 10:
-            str+='J'
-    str += " of "
+            words+='J'
+        case _:
+            words+=str(card%13)
+    words += " of "
     match card//13:
         case 0:
-            str += chr(9829) # Hearts
+            words += chr(9829) # Hearts
         case 1:
-            str += chr(9830) # Diamonds
+            words += chr(9830) # Diamonds
         case 2:
-            str += chr(9824) # Spades
+            words += chr(9824) # Spades
         case 3:
-            str += chr(9827) # Clubs
+            words += chr(9827) # Clubs
         case _:
             raise "Out of range"
-    return str
+    return words
     
+# calculates the sum for give set of cards
+def summation(cards):
+    sum = 0
+    ace = 0
+    for card in cards:
+        if card%13>9:
+            sum+=10
+        elif card%13>0:
+            sum+=card%13+1
+        else:
+            ace+=1
+    while(ace>0 and 21-(sum+ace)>=10):
+        ace-=1
+        sum+=11
+    if 52 in cards:
+        return "???"
+    return sum
+    
+# returns a boolean if player has a bust or blackjack
+def check_bust(cards):
+    return summation(cards)>21
+
+# prints the hand of a character(dealer or player)  
+def print_hand(dealer,player):
+    print(f"DEALER: {summation(dealer)}")
+    print_card(dealer)
+    print(f"PLAYER: {summation(player)}")
+    print_card(player)
 
 money = 5000
 
@@ -115,11 +146,64 @@ print('''
       but must hit exactly one more time before standing.
       In case of a tie, the bet is returned to the player.
       The dealer stops hitting at 17.\n\n''')
+new = True
+stand = False
+bet = 0
 while(True):
-    print(f"Money : {money}")
-    bet = input(f"How much money do you bet? (1-{money} or QUIT)\n> ")
-    if bet.lower() == "quit":
-        break
+    if bet == 0:
+        print(f"\nMoney : {money}")
+        bet = input(f"How much money do you bet? (1-{money} or QUIT)\n> ")
+        if bet.lower() == "quit":
+            break
+        else:
+            bet = int(bet)
     else:
         print(f"\nBet: {bet}\n")
-        # TODO: implement main game loop
+        if(new):
+            dealer = []
+            player = []
+        new=False
+        if dealer == []:
+            dealer.append(get_card())
+            dealer.insert(0,52)
+            player.append(get_card())
+            player.append(get_card())
+
+        print_hand(dealer,player)
+        move = input("(H)it, (S)tand, (D)ouble down\n> ")
+        match move.lower():
+            case 'h':
+                player.append(get_card())
+                print(f"You drew a {card_in_words(player[-1])}.")
+                if check_bust(player):
+                    print_hand(dealer,player)
+                    print("You have a bust")
+                    money -= bet
+                    bet = 0
+                    new = True
+                    input("Press enter to continue")
+            case 's':
+                stand = True
+            case 'd':
+                # TODO: implement double down
+                pass
+        if stand:
+            dealer.pop(0)
+            while(summation(dealer)<17):
+                dealer.append(get_card())
+                print(f"Delaer drew a {card_in_words(dealer[-1])}")
+                print_hand(dealer,player)
+            if summation(dealer)>21 or summation(dealer)<summation(player):
+                print("!!! YOU WIN !!!")
+                print(f"Received {bet}")
+                money+=bet
+            elif summation(dealer) == summation(player):
+                print("We have a Tie")
+            else:
+                print("You LOSE")
+                print(f"You lost {bet}")
+                money-=bet
+            new = True
+            bet = 0
+            stand = False
+            input("Press enter to continue")
