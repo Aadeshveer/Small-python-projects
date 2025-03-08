@@ -1,5 +1,7 @@
 import random
 
+deck = [i for i in range(52)]
+
 # takes in a list of indices and prints the cards parallely
 def print_card(cards):
     n = len(cards)
@@ -71,7 +73,8 @@ def print_card(cards):
 
 # returns a valid card
 def get_card():
-    x = random.randint(0,51)
+    x = random.choice(deck)
+    deck.remove(x)
     return x
 
 # returns the card in words
@@ -87,7 +90,7 @@ def card_in_words(card):
         case 10:
             words+='J'
         case _:
-            words+=str(card%13)
+            words+=str(card%13+1)
     words += " of "
     match card//13:
         case 0:
@@ -146,64 +149,83 @@ print('''
       but must hit exactly one more time before standing.
       In case of a tie, the bet is returned to the player.
       The dealer stops hitting at 17.\n\n''')
-new = True
-stand = False
-bet = 0
 while(True):
-    if bet == 0:
-        print(f"\nMoney : {money}")
-        bet = input(f"How much money do you bet? (1-{money} or QUIT)\n> ")
-        if bet.lower() == "quit":
-            break
-        else:
-            bet = int(bet)
+    print(f" Money : {money} ".center(40,'*'))
+    bet = input(f"How much money do you bet? (1-{money} or QUIT)\n> ")
+    if bet.lower() == "quit":
+        break
     else:
+        bet = int(bet)
+    double = False
+    bust = False
+    hitting = True
+    hit = 0
+    dealer = []
+    player = []
+    dealer.append(get_card())
+    dealer.insert(0,52)
+    player.append(get_card())
+    player.append(get_card())
+    while(hitting):
+        hit+=1
         print(f"\nBet: {bet}\n")
-        if(new):
-            dealer = []
-            player = []
-        new=False
-        if dealer == []:
-            dealer.append(get_card())
-            dealer.insert(0,52)
-            player.append(get_card())
-            player.append(get_card())
 
         print_hand(dealer,player)
-        move = input("(H)it, (S)tand, (D)ouble down\n> ")
-        match move.lower():
-            case 'h':
-                player.append(get_card())
-                print(f"You drew a {card_in_words(player[-1])}.")
-                if check_bust(player):
-                    print_hand(dealer,player)
-                    print("You have a bust")
-                    money -= bet
-                    bet = 0
-                    new = True
-                    input("Press enter to continue")
-            case 's':
-                stand = True
-            case 'd':
-                # TODO: implement double down
-                pass
-        if stand:
+
+        # implementing black jack
+        if summation(player)==21:
+            print("You have a Black Jack")
             dealer.pop(0)
+            dealer.append(get_card())
+            if summation(dealer) == 21:
+                print_hand(dealer,player)
+                print(" We have a tie ".center(40,'-'))
+                bet = 0
+            else:
+                print(" You WIN 3 to 2 ".center(40,'!'))
+                money+=bet*3//2
+                bet = 0
+            break
+        move = input("(H)it, (S)tand, (D)ouble down\n> ")
+        if hit!=1 and move.lower=='d':
+            print("You can double down in first round only")
+            continue
+        if move.lower()=='h' or move.lower()=='d':
+            player.append(get_card())
+            print(f"\nYou drew a {card_in_words(player[-1])}\n")
+        if move.lower()=='s' or move.lower()=='d':
+            hitting = False
+        if move.lower()=='d':
+            double = True
+        if summation(player)>21:
+            hitting = False
+            bust = True
+        input("Press enter to continue")
+    else:
+        dealer.pop(0)
+        if bust:
+            print_hand(dealer,player)
+            print(" You have a bust You LOSE ".center(40,'*'))
+            print(f"You lost {bet if not double else 2*bet}")
+            bet = -bet
+        else:
             while(summation(dealer)<17):
                 dealer.append(get_card())
                 print(f"Delaer drew a {card_in_words(dealer[-1])}")
                 print_hand(dealer,player)
             if summation(dealer)>21 or summation(dealer)<summation(player):
-                print("!!! YOU WIN !!!")
-                print(f"Received {bet}")
-                money+=bet
+                print(" YOU WIN ".center(40,'!'))
+                print(f"Received {bet if not double else 2*bet}")
             elif summation(dealer) == summation(player):
-                print("We have a Tie")
+                print("We have a Tie".center(40,'-'))
+                bet = 0
             else:
-                print("You LOSE")
-                print(f"You lost {bet}")
-                money-=bet
-            new = True
-            bet = 0
-            stand = False
-            input("Press enter to continue")
+                print(" You LOSE ".center(40,'.'))
+                print(f"You lost {bet if not double else 2*bet}")
+                bet = -bet
+        if double:
+            money+=2*bet
+        else:
+            money+=bet
+        bet = 0
+        input("Press enter to continue")
