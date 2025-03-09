@@ -3,7 +3,12 @@ import random
 deck = [i for i in range(52)]
 
 # takes in a list of indices and prints the cards parallely
-def print_card(cards):
+def print_card(to_print):
+    cards = []
+    if 52 in to_print:
+        cards=to_print[0:2]
+    else:
+        cards = to_print
     n = len(cards)
     # top line
     for i in range(n):
@@ -119,6 +124,7 @@ def summation(cards):
     while(ace>0 and 21-(sum+ace)>=10):
         ace-=1
         sum+=11
+    sum+=ace
     if 52 in cards:
         return "???"
     return sum
@@ -149,6 +155,8 @@ print('''
       but must hit exactly one more time before standing.
       In case of a tie, the bet is returned to the player.
       The dealer stops hitting at 17.\n\n''')
+dealer = []
+player = []
 while(True):
     print(f" Money : {money} ".center(40,'*'))
     bet = input(f"How much money do you bet? (1-{money} or QUIT)\n> ")
@@ -156,12 +164,15 @@ while(True):
         break
     else:
         bet = int(bet)
+    deck = [i for i in range(52)]
+    random.shuffle(deck)
     double = False
     bust = False
     hitting = True
     hit = 0
     dealer = []
     player = []
+    dealer.append(get_card())
     dealer.append(get_card())
     dealer.insert(0,52)
     player.append(get_card())
@@ -176,7 +187,6 @@ while(True):
         if summation(player)==21:
             print("You have a Black Jack")
             dealer.pop(0)
-            dealer.append(get_card())
             if summation(dealer) == 21:
                 print_hand(dealer,player)
                 print(" We have a tie ".center(40,'-'))
@@ -187,7 +197,7 @@ while(True):
                 bet = 0
             break
         move = input("(H)it, (S)tand, (D)ouble down\n> ")
-        if hit!=1 and move.lower=='d':
+        if hit!=1 and move.lower()=='d':
             print("You can double down in first round only")
             continue
         if move.lower()=='h' or move.lower()=='d':
@@ -212,7 +222,7 @@ while(True):
             while(summation(dealer)<17):
                 dealer.append(get_card())
                 print(f"Delaer drew a {card_in_words(dealer[-1])}")
-                print_hand(dealer,player)
+            print_hand(dealer,player)
             if summation(dealer)>21 or summation(dealer)<summation(player):
                 print(" YOU WIN ".center(40,'!'))
                 print(f"Received {bet if not double else 2*bet}")
