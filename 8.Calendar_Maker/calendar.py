@@ -36,9 +36,9 @@ for day in DAYS:
     calendar+=day.capitalize().center(CELL_WIDTH,'.')
 calendar+='.\n'
 first_day = datetime.date(year=year,month=month,day = 1)
-date = first_day - datetime.timedelta(first_day.weekday())
-first = True
-while(date.month==month or first):
+date = first_day - datetime.timedelta(first_day.weekday()%7)
+
+while date.month<=month and date.day<=31:
     calendar+=('+'+'-'*CELL_WIDTH)*7+'+\n'
     for i in range(7):
         calendar+='|'+str(date.day).ljust(CELL_WIDTH)
@@ -48,11 +48,10 @@ while(date.month==month or first):
         for i in range(7):
             calendar+='|'.ljust(CELL_WIDTH+1)
         calendar+='|\n'
-    first = False
 calendar+=('+'+'-'*CELL_WIDTH)*7+'+'
 print(calendar)
 
-file_name = f"Calendar_{month}_{year}"
+file_name = f"Calendar_{month}_{year}.txt"
 try:
     with open(file_name,'w') as file:
         file.write(calendar)
