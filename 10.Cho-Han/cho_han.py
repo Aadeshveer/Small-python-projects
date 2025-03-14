@@ -59,7 +59,6 @@ while(money>0):
         else:
             inp = input("Please enter a valid input (Cho or Han)\n")
     
-    os.system('cls')
     print("The dealer lifts the cup to reveal: ")
 
     print(string_dice([dice1,dice2]), f"Sum = {dice2+dice1}")
