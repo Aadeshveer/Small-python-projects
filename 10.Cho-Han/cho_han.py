@@ -1,7 +1,5 @@
 import random
 
-
-
 def string_dice(n_lst):
     s = ""
     ul = ['●' if n != 1 else ' ' for n in n_lst]
@@ -61,7 +59,7 @@ while(money>0):
         else:
             inp = input("Please enter a valid input (Cho or Han)\n")
     
-    print(parity,inp)
+    os.system('cls')
     print("The dealer lifts the cup to reveal: ")
 
     print(string_dice([dice1,dice2]), f"Sum = {dice2+dice1}")
@@ -74,6 +72,7 @@ while(money>0):
     else:
         print(f"You Lost the bet.")
         money-=bet
+    input("Press enter to continue...")
 
 else:
     print("You are broke now".center(50))
