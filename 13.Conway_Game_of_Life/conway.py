@@ -3,7 +3,6 @@ import platform
 import time
 import os
 
-FILE_NAME = "test1.txt"
 DEAD_CHAR = ' '
 ALIVE_CHAR = '0'
 
