@@ -7,6 +7,13 @@ FILE_NAME = "test1.txt"
 DEAD_CHAR = ' '
 ALIVE_CHAR = '0'
 
+def clear_screen():
+    system = platform.system()
+    if system == 'Windows':
+        os.system('cls')
+    else:
+        os.system('clear')
+
 class conway:
 
     def __init__(self,x,y,frac):
@@ -33,28 +40,25 @@ class conway:
             s+='─'
         s+='┐\n'
         for i in range(self.height):
-            s+="| "
+            s+="│ "
             for j in range(self.width):
                 s+=self.a[i+1][j+1]
-            s+=" |\n"
+            s+=" │\n"
         s+='└'
         for j in range(self.width+2):
             s+='─'
-        s+='┘\n'
+        s+='┘'
         return s
     
     def read_file(self,s):
-        if os.path.isfile(s):
-            f = open(s, "r")
-            x = f.read()
-            ctr = 0
-            for i in range(self.height):
-                for j in range(self.width):
-                    self.a[i+1][j+1] = x[ctr]
-                    ctr+=1
+        f = open(s, "r")
+        x = f.read()
+        ctr = 0
+        for i in range(self.height):
+            for j in range(self.width):
+                self.a[i+1][j+1] = x[ctr]
                 ctr+=1
-            return True
-        return False
+            ctr+=1
             
     def step(self):
         new = [[DEAD_CHAR for _ in range(self.width+2)] for _ in range(self.height+2)]
@@ -99,38 +103,69 @@ class conway:
 
 print(" Conway's game of life ".center(50,'*'))
 while(True):
-    try:
-        x = int(input("Enter width of board(max 100)\n> "))
-        y = int(input("Enter height of board(max 50)\n> "))
-        frac = float(input("Enter fraction of alive cells\n> "))
-        if not 0<x<=100:
-            print("Value of width must follow constrains (0,100]")
+    frac = 0
+    n = input("Enter a file name(enter r for random, q to quit):\n> ")
+    
+    if n.lower() == 'q':
+        exit(0)
+    
+    if n.lower() == 'r':        
+        while(True):
+            try:
+                frac = input("Enter fraction of alive cells\n> ")
+                if frac.lower() == 'q':
+                    exit(0)
+                frac = float(frac)
+                if not 0<=frac<=1:
+                    print("Value of fraction must follow constrains [0,1]\n")
+                    continue
+                break
+            except ValueError:
+                print("Enter a Valid decimal number between 0 and 1\n")
+    else:
+        if not os.path.isfile(n):
+            print(f"{n} does not exist!\n")
             continue
-        if not 0<y<=50:
-            print("Value of height must follow constrains (0,50]")
-            continue
-        if not 0<=frac<=1:
-            print("Value of fraction must follow constrains [0,1]")
-            continue
-        break
-    except ValueError:
-        pass
-    except TypeError:
-        print("Please enter integer values for height and width and real for fraction")
-world = conway(x,y,frac)
 
-if(world.read_file(FILE_NAME)):
-    print(f"Read file {FILE_NAME}")
+    while(True): # reads in height
+        try:
+            y = input("Enter height of board(max 500)\n> ")
+            if y.lower() == 'q':
+                exit(0)
+            y = int(y)
+            if not 0<y<=500:
+                print("Value of height must follow constrains (0,500]\n")
+                continue
+            break
+        except ValueError:
+            print("Please enter integer value for height.\n")
 
-print(world)
-while(True):
-    try:
-        n = int(input("Enter number of iterations\n> "))
-        break
-    except TypeError:
-        print("Invalid Integer!!")
-for _ in range(n):
-    print("\033[H\033[J", end="")  # Moves cursor to top-left and clears screen
-    world.step()
+    while(True): # reads in width
+        try:
+            x = input("Enter width of board(max 1000)\n> ")
+            if x.lower() == 'q':
+                exit(0)
+            x = int(x)
+            if not 0<x<=1000:
+                print("Value of width must follow constrains (0,1000]\n")
+                continue
+            break
+        except ValueError:
+            print("Please enter integer values for width.\n")
+
+    world = conway(x,y,frac)
+    if n.lower()!='r':
+        world.read_file(n)
     print(world)
-    time.sleep(0.05)
+    while(True):
+        try:
+            n = int(input("Enter number of iterations\n> "))
+            break
+        except ValueError:
+            print("Invalid Integer!!\n")
+    for _ in range(n):
+        clear_screen()
+        world.step()
+        print(world)
+        time.sleep(0.05)
+    input("Press Enter to continue...")
