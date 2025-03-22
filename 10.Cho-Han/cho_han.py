@@ -1,28 +1,7 @@
 import random
-
-def string_dice(n_lst):
-    s = ""
-    ul = ['●' if n != 1 else ' ' for n in n_lst]
-    ur = ['●' if n > 3 else ' ' for n in n_lst]
-    cl = ['●' if n == 6 else ' ' for n in n_lst]
-    cr = ['●' if n == 6 else ' ' for n in n_lst]
-    cc = ['●' if n%2==1 else ' ' for n in n_lst]
-    ll = ['●' if n > 3 else ' ' for n in n_lst]
-    lr = ['●' if n != 1 else ' ' for n in n_lst]
-    s+="┌─────────┐ "*len(n_lst)
-    s+="\n"
-    for i in range(len(n_lst)):
-        s+="| "+ul[i]+' '*5+ur[i]+" | "
-    s+="\n"
-    for i in range(len(n_lst)):
-        s+="| "+cl[i]+"  "+cc[i]+"  "+cr[i]+" | "
-    s+="\n"
-    for i in range(len(n_lst)):
-        s+="| "+ll[i]+' '*5+lr[i]+" | "
-    s+="\n"
-    s+="└─────────┘ "*len(n_lst)
-    s+="\n"
-    return s;
+import sys
+sys.path.append('../')
+from Collective_resources.ascii import DiceBoard
 
 print(" Cho-Han ".center(50,'*'))
 
@@ -60,8 +39,10 @@ while(money>0):
             inp = input("Please enter a valid input (Cho or Han)\n")
     
     print("The dealer lifts the cup to reveal: ")
-
-    print(string_dice([dice1,dice2]), f"Sum = {dice2+dice1}")
+    board = DiceBoard()
+    for i in board.adj_dice([dice1,dice2]):
+        print(i)
+    print(f"Sum = {dice2+dice1}")
 
     if inp==parity:
         print(f"You WON!! You take {2*bet} mon.")
