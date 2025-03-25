@@ -18,6 +18,9 @@ while True:
         roll = random.randint(1,int(side))
         result+=roll
         rolls.append(roll)
-    result+=int(mod)
-    rolls.append(mod)
+    if mod is None:
+        mod = 0
+    else:
+        result+=int(mod)
+        rolls.append(mod)
     print(result,tuple(rolls))
