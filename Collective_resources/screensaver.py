@@ -41,6 +41,7 @@ class BitStream():
         processes the next bit stream line
         '''
         for i in range(self.width):
+            # In order to make the view like bit strings flying up the lines with a bit must contain it for some length which is taken care by following if statement
             if random.randint(1,6)!=1:
                 continue
             if self.line[i]==' ':
@@ -62,3 +63,76 @@ class BitStream():
         except KeyboardInterrupt:
             print("\nExiting...")
             exit(0)
+
+class DNAVisualization():
+    '''
+    Makes a running animation of DNA strand scrolling up
+    '''
+    Pairs_lst = [
+        ( 'A' , 'T' ),
+        ( 'T' , 'A' ),
+        ( 'G' , 'C' ),
+        ( 'C' , 'G' )
+    ]
+
+    template=[
+    '     ##    ',
+    '    #{}-{}#  ',
+    '   #{}---{}# ',
+    '  #{}-----{}#',
+    ' #{}------{}#',
+    '#{}------{}# ',
+    '#{}-----{}#  ',
+    ' #{}---{}#   ',
+    ' #{}-{}#     ',
+    '  ##       ',
+    ' #{}-{}#     ',
+    ' #{}---{}#   ',
+    '#{}-----{}#  ',
+    '#{}------{}# ',
+    ' #{}------{}#',
+    '  #{}-----{}#',
+    '   #{}---{}# ',
+    '    #{}-{}#  '
+    ]
+
+    def __init__(self,width=60,delay=0.1):
+        self.width=width
+        self.delay=delay
+        self.ctr = 0
+        self.line = self.template[self.ctr].center(self.width)
+
+    def __str__(self):
+        '''
+        prints the last line of stream
+        '''
+        return self.get_str()
+    
+    def get_str(self):
+        '''
+        Returns a string with DNA Visualization in center
+        '''
+        return self.line
+    
+    def set_pairs(self,lst):
+        '''
+        Sets the pairs to be seen in DNA Sequence, input must be a list of pairs of characters
+        '''
+        self.Pairs_lst = lst
+
+    def iterate(self):
+        '''
+        Changes the new line to next one
+        '''
+        self.ctr+=1
+        new_pair = random.choice(self.Pairs_lst)
+        self.line = self.template[self.ctr%len(self.template)].format(new_pair[0],new_pair[1]).center(self.width)
+
+    def loop(self):
+        '''
+        Infinitely loop through the printing system to generate the effect
+        '''
+        while True:
+            print(self.get_str())
+            self.iterate()
+            time.sleep(self.delay)
