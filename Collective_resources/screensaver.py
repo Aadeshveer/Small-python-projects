@@ -58,12 +58,12 @@ class BitStream():
         '''
         try:
             while True:
-                print(self.get_str())
+                sys.stdout.write(self.get_str() + "\n")
+                sys.stdout.flush()
                 self.iterate()
                 time.sleep(self.delay)
         except KeyboardInterrupt:
             print("\nExiting...")
-            exit(0)
 
 class DNAVisualization():
     '''
@@ -115,12 +115,6 @@ class DNAVisualization():
         '''
         return self.line
     
-    def set_pairs(self,lst):
-        '''
-        Sets the pairs to be seen in DNA Sequence, input must be a list of pairs of characters
-        '''
-        self.Pairs_lst = lst
-
     def iterate(self):
         '''
         Changes the new line to next one
@@ -133,10 +127,14 @@ class DNAVisualization():
         '''
         Infinitely loop through the printing system to generate the effect
         '''
-        while True:
-            print(self.get_str())
-            self.iterate()
-            time.sleep(self.delay)
+        try:
+            while True:
+                sys.stdout.write(self.get_str() + "\n")
+                sys.stdout.flush()
+                self.iterate()
+                time.sleep(self.delay)
+        except KeyboardInterrupt:
+            print("\nExiting...")
 
 class Ducklings():
     '''
@@ -147,32 +145,47 @@ class Ducklings():
     EYES = ['"',"''","^^",'``']
     MOUTHS = ['<','=']
     WINGS = ['<','V','^']
-    def __init__(self, number = 10, width = 60, delay = 0.01):
-        self.num = number
-        self.width = 60
+    def __init__(self, density = 5, width = 60, delay = 0.2):
+        self.density = density
+        self.width = width
         self.delay = delay
+        self.line = " "*width
+        self.__available_indices = [i for i in range(width-5)]
+        self.__present_ducks = []
+
+    def __str__(self):
+        '''
+        Prints last line of stream
+        '''
+        return self.get_str()
+    
+    def get_str(self):
+        '''
+        Returns the last line of stream
+        '''
+        return self.line
 
     def duck_gen(self, direction='right', body_type=0, eye_type=0, mouth_type=0, wing_position=0):
         '''
-        Generates  a  duckling ascii art
+        Generates  a  duckling ASCII art
         
         Args:
             direction: can be 'left' or 'right'
-            body_size: can be a non -ve index for BODIES list
+            body_type: can be a non -ve index for BODIES list
             eye_type: can be a non -ve index for EYES list
             mouth_type: can be a non -ve index for MOUTHS list
             wing_position: can be a non -ve index for WINGS list
 
         returns:
-            A list of sttrings which form the duckling when printed line by line
+            A list of strings which form the duckling when printed line by line
 
         raises:
-            ValueError: If given arguements are not correct
+            ValueError: If given arguments are not correct
         '''
         if direction not in self.DIRECTIONS:
-            raise ValueError("Given direction arguement is invalid")
+            raise ValueError("Given direction argument is invalid")
         if body_type not in range(len(self.BODIES)):
-            raise ValueError("Given body_type is not invalid")
+            raise ValueError("Given body_type is invalid")
         if eye_type not in range(len(self.EYES)):
             raise ValueError("Given eye_type is invalid")
         if mouth_type not in range(len(self.MOUTHS)):
@@ -193,7 +206,7 @@ class Ducklings():
         eyes = self.EYES[eye_type]
         s = (' ' if len(eyes)==2 else '  ')+'('+eyes+self.MOUTHS[mouth_type]
         if direction=='left':
-            s = ''.join(self.__dir_inv(list(s)))
+            s = self.__dir_inv(s)
         return s
     
     def __body_str(self,direction,body_type,wing_position):
@@ -202,44 +215,82 @@ class Ducklings():
         '''
         s = self.BODIES[body_type][0].format(self.WINGS[wing_position])
         if direction=='left':
-            s = ''.join(self.__dir_inv(list(s)))
+            s = self.__dir_inv(s)
         return s
 
     def __feet_str(self,direction,body_type):
         '''
-        Generats the feet string
+        Generates the feet string
         '''
         s = self.BODIES[body_type][1]
         if direction=='left':
-            s = ''.join(self.__dir_inv(list(s)))
+            s = self.__dir_inv(s)
         return s
 
-    def __dir_inv(self,lst):
+    def __dir_inv(self, s):
         '''
         Reverses the string to change direction
         
         Args:
-            lst: list of characters in string to reverse
+            s: the string to reverse
         
         returns:
-            list of characters in invereted string
+            the inverted string
         '''
-        lst.reverse()
-        if '<' in lst:
-            while lst.count('<') != 0:
-                lst[lst.index('<')] = '>'
-        else:
-            while lst.count('>') != 0:
-                lst[lst.index('>')] = '<'
-        opening_brackets = []
-        
-        for _ in range(lst.count('(')):
-            opening_brackets.append(lst.index('('))
-        
-        while lst.count(')') !=0:
-            lst[lst.index(')')] = '('
+        translation = str.maketrans("<>()", "><)(")
+        return s.translate(translation)[::-1]
+    
+    def __select_loc(self):
+        '''
+        Places a duckling at a random available location if possible
+        '''
+        if self.__available_indices:
+            for _ in range(self.density):
+                x = random.choice(self.__available_indices)
+                if all((x + i) in self.__available_indices for i in range(5)):  # Ensure enough space
+                    new_duck = [
+                        x, 
+                        0, 
+                        self.duck_gen(
+                            random.choice(self.DIRECTIONS),
+                            random.randint(0, len(self.BODIES) - 1),
+                            random.randint(0, len(self.EYES) - 1),
+                            random.randint(0, len(self.MOUTHS) - 1),
+                            random.randint(0, len(self.WINGS) - 1),
+                        ),
+                    ]
+                    self.__present_ducks.append(new_duck)
+                    for i in range(5):
+                        if x + i in self.__available_indices:
+                            self.__available_indices.remove(x + i)
+                    break
 
-        for i in opening_brackets:
-            lst[i] = ')'
-                
-        return lst
+    def __refresh_string(self):
+        '''
+        Refreshes the self.line to incorporate new ducklings
+        '''
+        lst = [" " for _ in range(self.width)]
+        for i in range(len(self.__present_ducks)):
+            for j in range(5):
+                lst[self.__present_ducks[i][0]+j] = self.__present_ducks[i][2][self.__present_ducks[i][1]][j]
+            self.__present_ducks[i][1]+=1
+        for i in self.__present_ducks:
+            if i[1] == 3:
+                self.__available_indices+=[j+i[0] for j in range(5)]
+                self.__present_ducks.remove(i)
+            
+        self.line = "".join(lst)
+
+    def loop(self):
+        '''
+        Runs the screen saver
+        '''
+        try:
+            while True:
+                self.__select_loc()
+                self.__refresh_string()
+                sys.stdout.write(self.get_str() + "\n")
+                sys.stdout.flush()
+                time.sleep(self.delay)
+        except KeyboardInterrupt:
+            print("\nExiting...")
